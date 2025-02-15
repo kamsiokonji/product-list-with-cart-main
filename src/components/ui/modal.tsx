@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface ModalProps {
-  title: string;
+  title?: string;
   description?: string;
   isOpen: boolean;
   onClose: () => void;
