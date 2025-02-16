@@ -1,30 +1,46 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import AddToCartButton from "@/assets/images/icon-add-to-cart.svg";
 import Minus from "@/assets/images/icon-decrement-quantity.svg";
 import Plus from "@/assets/images/icon-increment-quantity.svg";
+import { useCart } from "@/provider/cart-context.tsx";
 
 interface AddToCartProps {
   className?: string;
-  onQuantityChange?: (quantity: number) => void;
+  itemId: number;
+  item: {
+    id: number;
+    name: string;
+    price: number;
+    category: string;
+    image: {
+      mobile: string;
+      desktop: string;
+    };
+  };
 }
 
-export default function AddToCart({
-  className,
-  onQuantityChange,
-}: AddToCartProps) {
-  const [quantity, setQuantity] = useState(0);
+export default function AddToCart({ className, itemId, item }: AddToCartProps) {
+  const { items, updateQuantity, addToCart } = useCart();
+  const cartItem = items.find((i) => i.id === itemId);
+  const quantity = cartItem?.quantity || 0;
 
   const handleIncrease = () => {
-    const newQuantity = quantity + 1;
-    setQuantity(newQuantity);
-    onQuantityChange?.(newQuantity);
+    if (quantity === 0) {
+      // Add new item to cart
+      addToCart({
+        ...item,
+        quantity: 1,
+      });
+    } else {
+      // Update existing item quantity
+      updateQuantity(itemId, quantity + 1);
+    }
   };
 
   const handleDecrease = () => {
-    const newQuantity = quantity > 0 ? quantity - 1 : 0;
-    setQuantity(newQuantity);
-    onQuantityChange?.(newQuantity);
+    if (quantity > 0) {
+      updateQuantity(itemId, quantity - 1);
+    }
   };
 
   return (

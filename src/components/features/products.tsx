@@ -1,15 +1,10 @@
 import data from "@/data/data.json";
 import useMobile from "@/lib/utils.ts";
 import AddToCart from "@/components/features/add-to-cart.tsx";
-import { useCart } from "@/provider/cart-context.tsx";
 
 export default function Products() {
   const isMobile = useMobile();
-  const { addToCart } = useCart();
 
-  const handleAddToCart = (item: any, quantity: number) => {
-    addToCart({ ...item, quantity });
-  };
   return (
     <div className="grid md:grid-cols-3 grid-cols-1 gap-8">
       {data &&
@@ -26,7 +21,8 @@ export default function Products() {
               <AddToCart
                 className={"relative bottom-7"}
                 key={item.id}
-                onQuantityChange={(quantity) => handleAddToCart(item, quantity)}
+                itemId={item.id}
+                item={item}
               />
             </div>
 
@@ -40,7 +36,7 @@ export default function Products() {
               </h1>
 
               <h1 className={"text-destructive font-semibold text-lg"}>
-                ${item.price}
+                ${item.price.toFixed(2)}
               </h1>
             </div>
           </div>

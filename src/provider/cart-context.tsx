@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 interface CartItem {
   id: number;
@@ -9,6 +15,7 @@ interface CartItem {
   image: {
     mobile: string;
     desktop: string;
+    thumbnail: string;
   };
 }
 
@@ -19,12 +26,30 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   removeFromCart: (itemId: number) => void;
+  getCartLength: () => number;
+  clearCart: () => void;
 }
+
+const CART_STORAGE_KEY = "shopping-cart";
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    // Initialize state from localStorage
+    if (typeof window !== "undefined") {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      return savedCart ? JSON.parse(savedCart) : [];
+    }
+    return [];
+  });
+
+  // Save to localStorage whenever cart items change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    }
+  }, [items]);
 
   const addToCart = (item: CartItem) => {
     setItems((currentItems) => {
@@ -39,17 +64,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = (itemId: number, quantity: number) => {
-    setItems((currentItems) =>
-      quantity === 0
-        ? currentItems.filter((item) => item.id !== itemId)
-        : currentItems.map((item) =>
-            item.id === itemId ? { ...item, quantity } : item,
-          ),
-    );
+    setItems((currentItems) => {
+      if (quantity <= 0) {
+        return currentItems.filter((item) => item.id !== itemId);
+      }
+      return currentItems.map((item) =>
+        item.id === itemId ? { ...item, quantity } : item,
+      );
+    });
   };
 
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const getCartLength = () => {
+    return items.length;
   };
 
   const getTotalPrice = () => {
@@ -62,6 +92,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const clearCart = () => {
+    setItems([]);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -71,6 +105,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         getTotalItems,
         getTotalPrice,
         removeFromCart,
+        getCartLength,
+        clearCart,
       }}
     >
       {children}
