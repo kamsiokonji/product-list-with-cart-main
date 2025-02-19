@@ -15,6 +15,7 @@ interface AddToCartProps {
     image: {
       mobile: string;
       desktop: string;
+      thumbnail: string;
     };
   };
 }
